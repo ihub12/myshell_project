@@ -2,6 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/wait.h>
+#include "ls_command.h"
+#include "cat_command.h"
+
 #define MAX_LINE 80
 #define MAX_ARGS 10
 
@@ -9,6 +13,7 @@ int main(){
     char input[MAX_LINE];
     char *token;
     char *argv[MAX_ARGS];
+    int argc;
 
     while(1){
         //prompt
@@ -40,6 +45,27 @@ int main(){
         else if (strcmp(argv[0], "pwd") == 0) {
             getcwd(input, MAX_LINE);
             printf("%s\n", input);
+        }
+        else if (strcmp(argv[0], "ls") == 0){
+            my_ls();
+        }
+        else if (strcmp(argv[0], "cat") == 0){
+            my_cat(i, argv);  
+        }
+        else {
+            pid_t pid = fork();
+            if(pid == 0){
+                if (access(argv[0], X_OK) == 0){
+                    execvp(argv[0], argv);
+                    perror("exec error");
+            }
+            else{
+                printf("command not found: %s\n", argv[0]);
+            }
+            }
+            else{
+                wait(NULL);
+            }
         }
     }
     return 0;
